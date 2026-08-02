@@ -67,6 +67,11 @@ let praiseFiles = null; // null = 아직 확인 안 함
 
 async function probePraiseFiles() {
   if (praiseFiles !== null) return praiseFiles;
+  // 단일 파일 배포(아티팩트)에서는 데이터 URI로 심은 목소리를 사용
+  if (Array.isArray(window.PRAISE_DATA_URIS) && window.PRAISE_DATA_URIS.length > 0) {
+    praiseFiles = window.PRAISE_DATA_URIS.slice();
+    return praiseFiles;
+  }
   const found = [];
   await Promise.all(
     Array.from({ length: 9 }, (_, i) => `sounds/praise/praise${i + 1}.mp3`).map(async url => {

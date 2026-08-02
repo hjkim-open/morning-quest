@@ -1,0 +1,1250 @@
+<meta charset="UTF-8">
+<title>아침 퀘스트</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<style>
+/* ===== 아침 퀘스트 — 심플 다크 ===== */
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+:root {
+  --bg: #111827;
+  --card: #1f2937;
+  --line: #374151;
+  --text: #f9fafb;
+  --sub: #9ca3af;
+  --accent: #34d399;
+  --warn1: #fbbf24;
+  --warn2: #fb923c;
+  --danger: #ef4444;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+  overscroll-behavior: none;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) 16px calc(72px + env(safe-area-inset-bottom));
+}
+
+.hidden { display: none !important; }
+
+/* ===== 헤더 ===== */
+#header { padding: 16px 0 12px; }
+.header-row { display: flex; justify-content: space-between; align-items: baseline; }
+.dday { font-size: 28px; font-weight: 800; color: var(--accent); }
+.clock { font-size: 20px; font-weight: 600; color: var(--sub); font-variant-numeric: tabular-nums; }
+
+.level-box { margin-top: 12px; background: var(--card); border-radius: 14px; padding: 12px 14px; }
+.level-row { display: flex; justify-content: space-between; align-items: center; }
+.level-title { font-size: 15px; font-weight: 700; }
+.streak { font-size: 14px; color: var(--warn1); font-weight: 700; }
+.xp-bar { margin-top: 8px; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.xp-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 4px; transition: width .5s ease; }
+.xp-text { margin-top: 4px; font-size: 12px; color: var(--sub); text-align: right; }
+
+/* ===== 경고 배너 ===== */
+.warn-banner {
+  margin: 8px 0;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+  white-space: pre-line;
+}
+.warn-banner.stage1 { background: var(--warn1); color: #111; }
+.warn-banner.stage2 { background: var(--warn2); color: #111; }
+.warn-banner.stage3 { background: var(--danger); color: #fff; }
+
+/* ===== 타이머 ===== */
+.timer-box {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--card); border-radius: 14px; padding: 12px 16px; margin: 8px 0;
+}
+.timer-label { font-size: 14px; color: var(--sub); }
+.timer { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+
+/* ===== 퀘스트 리스트 ===== */
+.quest-list { list-style: none; margin-top: 8px; }
+.quest-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card); border-radius: 14px;
+  padding: 16px; margin-bottom: 10px;
+  border: 1px solid transparent;
+}
+.quest-item.done { opacity: .55; border-color: var(--accent); }
+.quest-item.locked { opacity: .4; }
+.quest-num { font-size: 13px; font-weight: 800; color: var(--sub); min-width: 32px; }
+.quest-title { flex: 1; font-size: 16px; font-weight: 600; }
+.quest-time { font-size: 12px; color: var(--accent); }
+.quest-btn {
+  background: var(--accent); color: #062b1e;
+  border: none; border-radius: 10px;
+  padding: 12px 16px; font-size: 15px; font-weight: 800;
+  cursor: pointer;
+}
+.quest-btn:disabled { background: var(--line); color: var(--sub); }
+.quest-btn.wake { font-size: 17px; padding: 14px 18px; }
+
+/* ===== 커스텀 추가 ===== */
+.custom-add { display: flex; gap: 8px; margin-top: 4px; }
+.custom-add input {
+  flex: 1; background: var(--card); border: 1px solid var(--line);
+  border-radius: 10px; padding: 12px; color: var(--text); font-size: 15px;
+}
+.btn-small {
+  background: var(--card); color: var(--text);
+  border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 16px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+.btn-danger {
+  margin-top: 24px; width: 100%;
+  background: transparent; color: var(--danger);
+  border: 1px solid var(--danger); border-radius: 10px;
+  padding: 12px; font-size: 14px; font-weight: 700; cursor: pointer;
+}
+
+/* ===== 탭 ===== */
+main.tab { flex: 1; }
+main.tab h2 { font-size: 17px; margin: 20px 0 10px; }
+#tabbar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  max-width: 480px; margin: 0 auto;
+  display: flex; background: var(--card);
+  border-top: 1px solid var(--line);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.tab-btn {
+  flex: 1; background: none; border: none;
+  color: var(--sub); font-size: 14px; font-weight: 700;
+  padding: 14px 0; cursor: pointer;
+}
+.tab-btn.active { color: var(--accent); }
+
+/* ===== 기록 ===== */
+.chart { display: flex; align-items: flex-end; gap: 6px; height: 140px; background: var(--card); border-radius: 14px; padding: 14px; overflow-x: auto; }
+.bar-col { display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 34px; height: 100%; justify-content: flex-end; }
+.bar { width: 22px; background: var(--accent); border-radius: 4px 4px 0 0; min-height: 4px; }
+.bar.best { background: var(--warn1); }
+.bar.fail { background: var(--danger); }
+.bar-label { font-size: 10px; color: var(--sub); }
+.bar-val { font-size: 10px; color: var(--text); }
+
+.calendar { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; background: var(--card); border-radius: 14px; padding: 14px; }
+.cal-cell { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px; font-size: 11px; color: var(--sub); }
+.cal-cell .rank { font-size: 14px; }
+.cal-cell.today { border: 1px solid var(--accent); }
+
+.badges { display: flex; gap: 10px; }
+.badge { background: var(--card); border-radius: 14px; padding: 14px; text-align: center; flex: 1; font-size: 13px; }
+.badge.off { opacity: .35; }
+.badge .icon { font-size: 26px; display: block; margin-bottom: 4px; }
+
+/* ===== 설정 ===== */
+.setting-row { display: flex; justify-content: space-between; align-items: center; background: var(--card); border-radius: 14px; padding: 14px; margin-bottom: 12px; }
+.setting-info { background: var(--card); border-radius: 14px; padding: 14px; font-size: 13px; color: var(--sub); line-height: 1.7; }
+.setting-info h3 { color: var(--text); font-size: 14px; margin: 10px 0 4px; }
+.setting-info h3:first-child { margin-top: 0; }
+
+/* ===== 오버레이 ===== */
+.overlay {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(0,0,0,.85);
+  display: flex; align-items: center; justify-content: center;
+}
+#confetti-canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.overlay-content {
+  position: relative; text-align: center; padding: 24px; max-width: 340px;
+  animation: pop .35s cubic-bezier(.2, 1.6, .4, 1);
+}
+.overlay-content .big { font-size: 64px; }
+.overlay-content .rank-letter { font-size: 96px; font-weight: 900; line-height: 1.1; }
+.overlay-content .rank-letter.S { color: #fde047; text-shadow: 0 0 40px #fde047; }
+.overlay-content .rank-letter.A { color: #34d399; }
+.overlay-content .rank-letter.B { color: #60a5fa; }
+.overlay-content .rank-letter.C { color: #9ca3af; }
+.overlay-content .rank-letter.F { color: var(--danger); }
+.overlay-content h1 { font-size: 26px; margin: 10px 0; }
+.overlay-content p { font-size: 16px; color: var(--sub); margin: 6px 0; line-height: 1.6; white-space: pre-line; }
+.overlay-content .xp-gain { font-size: 20px; font-weight: 800; color: var(--accent); margin: 10px 0; }
+.overlay-content .record { display: inline-block; background: var(--warn1); color: #111; font-weight: 800; border-radius: 8px; padding: 6px 12px; margin: 8px 0; }
+.overlay-content button {
+  margin-top: 18px; background: var(--accent); color: #062b1e;
+  border: none; border-radius: 12px; padding: 14px 32px;
+  font-size: 16px; font-weight: 800; cursor: pointer;
+}
+.overlay.fail-mode { background: rgba(20,0,0,.93); }
+
+@keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+/* ===== 경고 연출 ===== */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20% { transform: translateX(-8px); }
+  40% { transform: translateX(8px); }
+  60% { transform: translateX(-6px); }
+  80% { transform: translateX(6px); }
+}
+.shaking { animation: shake .5s ease 3; }
+
+@keyframes redflash { 0%, 100% { opacity: 0; } 50% { opacity: .55; } }
+#red-flash {
+  position: fixed; inset: 0; z-index: 90; pointer-events: none;
+  background: var(--danger); opacity: 0;
+}
+#red-flash.on { animation: redflash .6s ease 6; }
+
+</style>
+
+  <div id="app">
+
+    <!-- 상단 상태 -->
+    <header id="header">
+      <div class="header-row">
+        <div id="dday" class="dday">D-??</div>
+        <div id="clock" class="clock">--:--</div>
+      </div>
+      <div class="level-box">
+        <div class="level-row">
+          <span id="level-title" class="level-title">Lv.1 이불 애벌레 🐛</span>
+          <span id="streak" class="streak">🔥 0일</span>
+        </div>
+        <div class="xp-bar"><div id="xp-fill" class="xp-fill"></div></div>
+        <div id="xp-text" class="xp-text">0 XP</div>
+      </div>
+    </header>
+
+    <!-- 경고 배너 -->
+    <div id="warn-banner" class="warn-banner hidden"></div>
+
+    <!-- 퀘스트 탭 -->
+    <main id="tab-quest" class="tab">
+      <div id="timer-box" class="timer-box hidden">
+        <span class="timer-label">밍기적 타이머</span>
+        <span id="timer" class="timer">00:00</span>
+      </div>
+      <ul id="quest-list" class="quest-list"></ul>
+      <div id="custom-add" class="custom-add hidden">
+        <input id="custom-input" type="text" placeholder="오늘의 추가 퀘스트 (예: 인강 1강)" maxlength="30">
+        <button id="custom-btn" class="btn-small">추가</button>
+      </div>
+    </main>
+
+    <!-- 기록 탭 -->
+    <main id="tab-stats" class="tab hidden">
+      <h2>📊 밍기적 시간</h2>
+      <div id="chart" class="chart"></div>
+      <h2>🗓️ 랭크 캘린더</h2>
+      <div id="calendar" class="calendar"></div>
+      <h2>🏅 배지</h2>
+      <div id="badges" class="badges"></div>
+    </main>
+
+    <!-- 설정 탭 -->
+    <main id="tab-settings" class="tab hidden">
+      <h2>⚙️ 설정</h2>
+      <div class="setting-row">
+        <span>소리</span>
+        <button id="sound-toggle" class="btn-small">켜짐</button>
+      </div>
+      <div class="setting-info">
+        <h3>⏰ 시간 기준</h3>
+        <p>10:00 기상 알람 (아이폰 알람 사용)<br>
+           10:20 1차 경고<br>
+           10:25 2차 경고 (욕설 시작)<br>
+           10:30 분노 모드 (5분마다)<br>
+           11:00 퀘스트 실패 판정</p>
+        <h3>📱 홈 화면에 추가</h3>
+        <p>Safari 공유 버튼 → "홈 화면에 추가"를 누르면 앱처럼 쓸 수 있어요.</p>
+        <h3>🎤 엄마 목소리 넣기</h3>
+        <p>sounds/praise/ 폴더에 praise1.mp3 ~ praise9.mp3 이름으로 넣으면 자동 적용돼요.</p>
+        <h3>⚠️ 사용 전제</h3>
+        <p>경고는 앱이 켜져 있는 동안만 울려요. 눈 뜨면 앱부터 열고, 루틴 끝날 때까지 화면을 켜두세요.</p>
+      </div>
+      <button id="reset-btn" class="btn-danger">데이터 전체 초기화</button>
+    </main>
+
+    <!-- 하단 탭 바 -->
+    <nav id="tabbar">
+      <button data-tab="quest" class="tab-btn active">⚔️ 퀘스트</button>
+      <button data-tab="stats" class="tab-btn">📊 기록</button>
+      <button data-tab="settings" class="tab-btn">⚙️ 설정</button>
+    </nav>
+
+    <!-- 클리어/칭찬 오버레이 -->
+    <div id="overlay" class="overlay hidden">
+      <canvas id="confetti-canvas"></canvas>
+      <div id="overlay-content" class="overlay-content"></div>
+    </div>
+
+  </div>
+  
+
+<script>
+// 엄마 목소리 데이터 URI를 여기에 넣으면 칭찬 목소리로 재생됩니다.
+// 예: window.PRAISE_DATA_URIS = ['data:audio/mpeg;base64,....'];
+window.PRAISE_DATA_URIS = [];
+</script>
+<script>
+// ===== clock.js =====
+// 시계 모듈 — 모든 시간 판정은 반드시 이 모듈을 거친다.
+// 테스트용 오버라이드: ?t=HH:MM (시각), ?d=YYYY-MM-DD (날짜)
+
+const params = new URLSearchParams(location.search);
+let offsetMs = 0;
+
+(function initOverride() {
+  const real = new Date();
+  let target = new Date(real);
+  let changed = false;
+
+  const d = params.get('d');
+  if (d && /^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    const [y, m, day] = d.split('-').map(Number);
+    target.setFullYear(y, m - 1, day);
+    changed = true;
+  }
+  const t = params.get('t');
+  if (t && /^\d{1,2}:\d{2}$/.test(t)) {
+    const [h, min] = t.split(':').map(Number);
+    target.setHours(h, min, 0, 0);
+    changed = true;
+  }
+  if (changed) offsetMs = target.getTime() - real.getTime();
+})();
+
+function now() {
+  return new Date(Date.now() + offsetMs);
+}
+
+function todayKey(date = now()) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+// 자정부터 지난 분 (소수점 포함)
+function minutesOfDay(date = now()) {
+  return date.getHours() * 60 + date.getMinutes() + date.getSeconds() / 60;
+}
+
+function isFakeClock() {
+  return offsetMs !== 0;
+}
+
+
+// ===== state.js =====
+// 상태 관리 — localStorage 스키마와 게임 규칙
+
+
+const KEY = 'morningQuest.v1';
+const EXAM_DATE = '2026-08-22';
+
+// 시간 기준 (분 단위, 자정 기준)
+const TIMES = {
+  warn1: 10 * 60 + 20,  // 10:20
+  warn2: 10 * 60 + 25,  // 10:25
+  rage: 10 * 60 + 30,   // 10:30 (이후 5분 간격)
+  fail: 11 * 60,        // 11:00
+  sTarget: 10 * 60 + 30,
+  aTarget: 10 * 60 + 40,
+  bTarget: 10 * 60 + 50,
+  cTarget: 11 * 60,
+};
+
+const LEVELS = [
+  { xp: 0,    title: '이불 애벌레',      emoji: '🐛' },
+  { xp: 80,   title: '눈뜬 좀비',        emoji: '🧟' },
+  { xp: 180,  title: '세수 견습생',      emoji: '🧼' },
+  { xp: 300,  title: '아침 모험가',      emoji: '🎒' },
+  { xp: 450,  title: '기상 기사단원',    emoji: '⚔️' },
+  { xp: 620,  title: '밍기적 학살자',    emoji: '🗡️' },
+  { xp: 820,  title: '아침의 지배자',    emoji: '👑' },
+  { xp: 1050, title: '전설의 아침 용사', emoji: '🏆' },
+];
+
+const FIXED_QUESTS = [
+  { id: 'q1', title: '기상! 침대 탈출' },
+  { id: 'q2', title: '세수 + 양치' },
+  { id: 'q3', title: '할머니집 도착' },
+];
+
+let state = null;
+
+function defaultState() {
+  return {
+    xp: 0,
+    streak: 0,
+    lastSuccessDate: null,
+    bestMingi: null,
+    settings: { sound: true },
+    days: {},
+  };
+}
+
+function getState() {
+  if (!state) {
+    try {
+      state = JSON.parse(localStorage.getItem(KEY)) || defaultState();
+    } catch {
+      state = defaultState();
+    }
+  }
+  return state;
+}
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify(getState()));
+}
+
+function resetAll() {
+  state = defaultState();
+  save();
+}
+
+// 오늘 데이터 (없으면 고정 퀘스트 3개로 생성 = 자정 리셋)
+function getToday() {
+  const s = getState();
+  const key = todayKey();
+  if (!s.days[key]) {
+    s.days[key] = {
+      quests: FIXED_QUESTS.map(q => ({ ...q, fixed: true, doneAt: null })),
+      wakeAt: null,
+      arriveAt: null,
+      mingiSec: null,
+      rank: null,
+      failed: false,
+      warnedStages: [],   // 발동한 경고 기록 ('1', '2', 'rage-630' 등)
+      newRecord: false,
+      xpEarned: 0,
+    };
+    save();
+  }
+  return s.days[key];
+}
+
+function fixedDone(day, id) {
+  const q = day.quests.find(q => q.id === id);
+  return q && q.doneAt !== null;
+}
+
+function canComplete(questId) {
+  const day = getToday();
+  const q = day.quests.find(q => q.id === questId);
+  if (!q || q.doneAt) return false;
+  if (q.fixed) {
+    if (q.id === 'q1') return true;
+    if (q.id === 'q2') return fixedDone(day, 'q1');
+    if (q.id === 'q3') return fixedDone(day, 'q2');
+  }
+  // 커스텀 퀘스트는 3차(할머니집 도착) 이후
+  return fixedDone(day, 'q3');
+}
+
+// 퀘스트 완료. 반환: { quest, cleared: 클리어결과|null }
+function completeQuest(questId) {
+  const day = getToday();
+  if (!canComplete(questId)) return null;
+  const q = day.quests.find(q => q.id === questId);
+  q.doneAt = now().toISOString();
+
+  let cleared = null;
+  if (q.id === 'q1') {
+    day.wakeAt = q.doneAt;
+    day.xpEarned += 10;
+    getState().xp += 10;
+  } else if (q.id === 'q3') {
+    day.arriveAt = q.doneAt;
+    day.mingiSec = Math.max(0, Math.round((new Date(day.arriveAt) - new Date(day.wakeAt)) / 1000));
+    day.xpEarned += 10;
+    getState().xp += 10;
+    cleared = applyClear(day);
+  } else if (q.fixed) {
+    day.xpEarned += 10;
+    getState().xp += 10;
+  } else {
+    day.xpEarned += 5;
+    getState().xp += 5;
+  }
+  save();
+  return { quest: q, cleared };
+}
+
+function addCustomQuest(title) {
+  const day = getToday();
+  const t = title.trim();
+  if (!t) return null;
+  const q = { id: 'c' + Date.now(), title: t, fixed: false, doneAt: null };
+  day.quests.push(q);
+  save();
+  return q;
+}
+
+// 3차 완료 시 랭크·XP·스트릭·신기록 판정
+function applyClear(day) {
+  const s = getState();
+  const arrive = new Date(day.arriveAt);
+  const min = arrive.getHours() * 60 + arrive.getMinutes() + arrive.getSeconds() / 60;
+
+  let rank, bonus;
+  if (min < TIMES.sTarget) { rank = 'S'; bonus = 50; }
+  else if (min < TIMES.aTarget) { rank = 'A'; bonus = 30; }
+  else if (min < TIMES.bTarget) { rank = 'B'; bonus = 20; }
+  else if (min < TIMES.cTarget) { rank = 'C'; bonus = 10; }
+  else { rank = 'F'; bonus = 0; }
+
+  day.rank = rank;
+  const prevLevel = levelInfo(s.xp).level;
+
+  let newRecord = false;
+  if (rank !== 'F') {
+    day.failed = false;
+    // 신기록
+    if (s.bestMingi === null || day.mingiSec < s.bestMingi) {
+      s.bestMingi = day.mingiSec;
+      newRecord = true;
+      bonus += 30;
+    }
+    // 스트릭
+    const yesterday = todayKey(new Date(new Date(day.arriveAt).getTime() - 86400000));
+    s.streak = (s.lastSuccessDate === yesterday) ? s.streak + 1 : 1;
+    s.lastSuccessDate = todayKey(new Date(day.arriveAt));
+  } else {
+    day.failed = true;
+    s.streak = 0;
+  }
+
+  day.newRecord = newRecord;
+  s.xp += bonus;
+  day.xpEarned += bonus;
+  save();
+
+  const after = levelInfo(s.xp);
+  return {
+    rank,
+    mingiSec: day.mingiSec,
+    xpGained: bonus + 10, // 퀘스트 기본 10 포함해 표시용
+    newRecord,
+    streak: s.streak,
+    levelUp: after.level > prevLevel ? after : null,
+  };
+}
+
+// 11:00 실패 처리 (3차 미완료)
+function markFailed() {
+  const day = getToday();
+  if (day.failed || day.arriveAt) return false;
+  day.failed = true;
+  day.rank = 'F';
+  getState().streak = 0;
+  save();
+  return true;
+}
+
+function levelInfo(xp = getState().xp) {
+  let level = 1;
+  for (let i = 0; i < LEVELS.length; i++) {
+    if (xp >= LEVELS[i].xp) level = i + 1;
+  }
+  const cur = LEVELS[level - 1];
+  const next = LEVELS[level] || null;
+  const progress = next
+    ? (xp - cur.xp) / (next.xp - cur.xp)
+    : 1;
+  return { level, title: cur.title, emoji: cur.emoji, progress, xp, nextXp: next ? next.xp : null };
+}
+
+function ddayText() {
+  const [y, m, d] = EXAM_DATE.split('-').map(Number);
+  const exam = new Date(y, m - 1, d);
+  const today = new Date(todayKey() + 'T00:00:00');
+  const diff = Math.round((exam - today) / 86400000);
+  if (diff > 0) return `D-${diff}`;
+  if (diff === 0) return 'D-DAY!';
+  return '시험 끝!';
+}
+
+
+// ===== timeline.js =====
+// 경고 타임라인 — 1초마다 호출되어 경고/실패를 판정한다
+
+
+
+// 2차 경고 (10:25~) — 욕설 시작
+// 수위를 바꾸고 싶으면 아래 문구를 직접 수정하세요. (외모·신체 비하, 혐오 표현 금지)
+const INSULTS_LV1 = [
+  '야 이 게으른 자식아, 아직도 누워있냐?',
+  '한심하다 진짜. 이불이 네 인생 책임져주냐?',
+  '10시 25분이다. 정신 안 차리냐?',
+  '밍기적거리는 꼬라지 하고는… 얼른 안 일어나?',
+  '세수하는 데 5분이면 된다. 뭐가 그렇게 오래 걸려!!',
+  '지금 일어나면 아직 안 늦었다. 계속 이러면 진짜 노답 된다?',
+];
+
+// 분노 모드 (10:30~, 5분마다) — 더 심한 욕설
+const INSULTS_LV2 = [
+  '미쳤냐?? 시험이 코앞인데 아직도 침대야?!',
+  '이 정도면 의지박약이 아니라 그냥 노답이다 노답.',
+  '할머니는 밥 차려놓고 기다리시는데 이러고 있냐? 부끄러운 줄 알아라!!',
+  '야이 답답아!! 네 미래가 지금 이불 속에서 썩고 있다고!!',
+  '불합격 통지서 받고 싶어서 환장했구나?',
+  '지금 이 순간에도 인강은 안 듣고 뭐 하는 거냐 진짜!!',
+  '돌겠네 진짜. 일어나. 일어나라고. 당장!!!',
+  '네 라이벌들은 벌써 책상에 앉아 있다. 너만 이불에 있다.',
+];
+
+const WARN1_MESSAGE = '⚠️ 10시 20분. 슬슬 위험하다… 움직이자?';
+
+function pick(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+// 매초 호출. callbacks: { onWarn(stage, message), onFail() }
+function checkTimeline({ onWarn, onFail }) {
+  const day = getToday();
+
+  // 3차 완료했거나 이미 실패면 경고 없음
+  if (day.arriveAt || day.failed) return { active: false };
+
+  const min = minutesOfDay();
+
+  // 11:00 실패 판정
+  if (min >= TIMES.fail) {
+    if (markFailed()) onFail();
+    return { active: false };
+  }
+
+  let stage = 0;
+  let key = null;
+  let message = null;
+
+  if (min >= TIMES.rage) {
+    // 10:30부터 5분 경계마다 새 경고
+    const slot = Math.floor((min - TIMES.rage) / 5);
+    stage = 3;
+    key = `rage-${slot}`;
+    message = '🔥 ' + pick(INSULTS_LV2);
+  } else if (min >= TIMES.warn2) {
+    stage = 2;
+    key = 'warn2';
+    message = '🚨 ' + pick(INSULTS_LV1);
+  } else if (min >= TIMES.warn1) {
+    stage = 1;
+    key = 'warn1';
+    message = WARN1_MESSAGE;
+  }
+
+  if (key && !day.warnedStages.includes(key)) {
+    day.warnedStages.push(key);
+    save();
+    onWarn(stage, message);
+  }
+
+  return { active: stage > 0 };
+}
+
+
+// ===== effects.js =====
+// 연출 — Web Audio 합성음, 콘페티, 화면 효과, 엄마 목소리
+
+
+let ctx = null;
+
+function unlockAudio() {
+  if (!ctx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (AC) ctx = new AC();
+  }
+  if (ctx && ctx.state === 'suspended') ctx.resume();
+}
+
+function soundOn() {
+  return getState().settings.sound && ctx;
+}
+
+function tone(freq, start, dur, { type = 'square', gain = 0.15, endFreq = null } = {}) {
+  const osc = ctx.createOscillator();
+  const g = ctx.createGain();
+  osc.type = type;
+  osc.frequency.setValueAtTime(freq, ctx.currentTime + start);
+  if (endFreq) osc.frequency.linearRampToValueAtTime(endFreq, ctx.currentTime + start + dur);
+  g.gain.setValueAtTime(gain, ctx.currentTime + start);
+  g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + start + dur);
+  osc.connect(g).connect(ctx.destination);
+  osc.start(ctx.currentTime + start);
+  osc.stop(ctx.currentTime + start + dur + 0.05);
+}
+
+// 1차 경고음: 짧은 삑
+function playBeep(times = 1) {
+  unlockAudio();
+  if (!soundOn()) return;
+  for (let i = 0; i < times; i++) tone(880, i * 0.25, 0.15);
+}
+
+// 분노 모드: 사이렌 (상승-하강 스윕 반복)
+function playSiren() {
+  unlockAudio();
+  if (!soundOn()) return;
+  for (let i = 0; i < 4; i++) {
+    tone(500, i * 0.6, 0.3, { type: 'sawtooth', gain: 0.2, endFreq: 1200 });
+    tone(1200, i * 0.6 + 0.3, 0.3, { type: 'sawtooth', gain: 0.2, endFreq: 500 });
+  }
+}
+
+// 팡파레: 상승 아르페지오
+function playFanfare() {
+  unlockAudio();
+  if (!soundOn()) return;
+  const notes = [523, 659, 784, 1047, 1319];
+  notes.forEach((f, i) => tone(f, i * 0.12, 0.35, { type: 'triangle', gain: 0.18 }));
+  tone(1047, notes.length * 0.12, 0.7, { type: 'triangle', gain: 0.2 });
+}
+
+// 실패음: 하강
+function playFailSound() {
+  unlockAudio();
+  if (!soundOn()) return;
+  const notes = [440, 370, 311, 233];
+  notes.forEach((f, i) => tone(f, i * 0.3, 0.4, { type: 'sawtooth', gain: 0.15 }));
+}
+
+// ===== 엄마 목소리 =====
+let praiseFiles = null; // null = 아직 확인 안 함
+
+async function probePraiseFiles() {
+  if (praiseFiles !== null) return praiseFiles;
+  // 단일 파일 배포(아티팩트)에서는 데이터 URI로 심은 목소리를 사용
+  if (Array.isArray(window.PRAISE_DATA_URIS) && window.PRAISE_DATA_URIS.length > 0) {
+    praiseFiles = window.PRAISE_DATA_URIS.slice();
+    return praiseFiles;
+  }
+  const found = [];
+  await Promise.all(
+    Array.from({ length: 9 }, (_, i) => `sounds/praise/praise${i + 1}.mp3`).map(async url => {
+      try {
+        const res = await fetch(url, { method: 'HEAD' });
+        if (res.ok) found.push(url);
+      } catch { /* 없음 */ }
+    })
+  );
+  praiseFiles = found;
+  return found;
+}
+
+// 재생 성공하면 true, 파일 없으면 false (호출부에서 팡파레로 대체)
+async function playPraise() {
+  if (!getState().settings.sound) return true; // 무음 설정이면 대체음도 내지 않음
+  const files = await probePraiseFiles();
+  if (files.length === 0) return false;
+  const url = files[Math.floor(Math.random() * files.length)];
+  try {
+    const audio = new Audio(url);
+    await audio.play();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// ===== 콘페티 =====
+let confettiRAF = null;
+
+function confetti(intensity = 'normal') {
+  const canvas = document.getElementById('confetti-canvas');
+  if (!canvas) return;
+  const c = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+
+  const count = intensity === 'max' ? 200 : 80;
+  const colors = ['#fde047', '#34d399', '#60a5fa', '#f472b6', '#fb923c'];
+  const parts = Array.from({ length: count }, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height * 0.5,
+    w: 6 + Math.random() * 6,
+    h: 8 + Math.random() * 8,
+    vy: 2 + Math.random() * 3,
+    vx: -1.5 + Math.random() * 3,
+    rot: Math.random() * Math.PI,
+    vr: -0.1 + Math.random() * 0.2,
+    color: colors[Math.floor(Math.random() * colors.length)],
+  }));
+
+  const started = performance.now();
+  const durMs = intensity === 'max' ? 5000 : 2500;
+
+  cancelAnimationFrame(confettiRAF);
+  function frame(t) {
+    c.clearRect(0, 0, canvas.width, canvas.height);
+    parts.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      c.save();
+      c.translate(p.x, p.y);
+      c.rotate(p.rot);
+      c.fillStyle = p.color;
+      c.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      c.restore();
+    });
+    if (t - started < durMs) {
+      confettiRAF = requestAnimationFrame(frame);
+    } else {
+      c.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  confettiRAF = requestAnimationFrame(frame);
+}
+
+function stopConfetti() {
+  cancelAnimationFrame(confettiRAF);
+  const canvas = document.getElementById('confetti-canvas');
+  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// ===== 빨간 점멸 =====
+function flashRed() {
+  let el = document.getElementById('red-flash');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'red-flash';
+    document.body.appendChild(el);
+  }
+  el.classList.remove('on');
+  void el.offsetWidth;
+  el.classList.add('on');
+}
+
+
+const effects = { unlockAudio, playBeep, playSiren, playFanfare, playFailSound, playPraise, confetti, stopConfetti, flashRed };
+
+
+// ===== stats.js =====
+// 기록 탭 — 밍기적 그래프, 랭크 캘린더, 배지
+
+
+
+
+const $stats = sel => document.querySelector(sel);
+
+const RANK_EMOJI = { S: '🌟', A: '🅰️', B: '🅱️', C: '©️', F: '💀' };
+
+function renderStats() {
+  renderChart();
+  renderCalendar();
+  renderBadges();
+}
+
+function lastNDays(n) {
+  const out = [];
+  const base = new Date(todayKey() + 'T00:00:00');
+  for (let i = n - 1; i >= 0; i--) {
+    out.push(todayKey(new Date(base.getTime() - i * 86400000)));
+  }
+  return out;
+}
+
+function renderChart() {
+  const s = getState();
+  const chart = $stats('#chart');
+  chart.innerHTML = '';
+  const keys = lastNDays(14);
+  const vals = keys.map(k => s.days[k]?.mingiSec ?? null);
+  const max = Math.max(600, ...vals.filter(v => v !== null));
+  let hasData = false;
+
+  keys.forEach((k, i) => {
+    const v = vals[i];
+    const day = s.days[k];
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+
+    const val = document.createElement('span');
+    val.className = 'bar-val';
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+
+    if (v !== null) {
+      hasData = true;
+      val.textContent = fmtDuration(v);
+      bar.style.height = `${Math.max(4, Math.round((v / max) * 90))}%`;
+      if (s.bestMingi !== null && v === s.bestMingi) bar.classList.add('best');
+    } else if (day?.failed) {
+      hasData = true;
+      val.textContent = '실패';
+      bar.style.height = '90%';
+      bar.classList.add('fail');
+    } else {
+      val.textContent = '·';
+      bar.style.height = '4%';
+    }
+
+    const label = document.createElement('span');
+    label.className = 'bar-label';
+    label.textContent = `${Number(k.slice(5, 7))}/${Number(k.slice(8, 10))}`;
+
+    col.append(val, bar, label);
+    chart.appendChild(col);
+  });
+
+  if (!hasData) {
+    chart.innerHTML = '<p style="color:#9ca3af;font-size:13px;align-self:center;margin:auto">아직 기록이 없어요. 내일 아침부터 쌓아보자! 💪</p>';
+  } else {
+    // 최근 기록이 보이도록 오른쪽 끝으로 스크롤
+    chart.scrollLeft = chart.scrollWidth;
+  }
+}
+
+function renderCalendar() {
+  const s = getState();
+  const cal = $stats('#calendar');
+  cal.innerHTML = '';
+  const t = now();
+  const year = t.getFullYear();
+  const month = t.getMonth();
+  const first = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const today = todayKey();
+
+  ['일', '월', '화', '수', '목', '금', '토'].forEach(w => {
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell';
+    cell.textContent = w;
+    cal.appendChild(cell);
+  });
+  for (let i = 0; i < first.getDay(); i++) {
+    cal.appendChild(Object.assign(document.createElement('div'), { className: 'cal-cell' }));
+  }
+  for (let d = 1; d <= daysInMonth; d++) {
+    const key = todayKey(new Date(year, month, d));
+    const day = s.days[key];
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell' + (key === today ? ' today' : '');
+    const rank = day?.rank ? `<span class="rank">${RANK_EMOJI[day.rank] || ''}</span>` : '';
+    cell.innerHTML = `<span>${d}</span>${rank}`;
+    cal.appendChild(cell);
+  }
+}
+
+function renderBadges() {
+  const s = getState();
+  const box = $stats('#badges');
+  box.innerHTML = '';
+  // 역대 최장 스트릭 기록이 없으므로 현재 스트릭 기준으로 표시
+  [
+    { need: 3, icon: '🥉', label: '3일 연속' },
+    { need: 7, icon: '🥈', label: '7일 연속' },
+    { need: 14, icon: '🥇', label: '14일 연속' },
+  ].forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'badge' + (s.streak >= b.need ? '' : ' off');
+    el.innerHTML = `<span class="icon">${b.icon}</span>${b.label}`;
+    box.appendChild(el);
+  });
+}
+
+
+// ===== ui.js =====
+// 렌더링과 사용자 입력
+
+
+
+
+
+const $ = sel => document.querySelector(sel);
+
+const PRAISE_LINES = [
+  '미쳤다!! 이걸 해내네?! 👏👏',
+  '오늘도 전설을 쓰는 중…',
+  '이불의 저주를 이겨냈다!!',
+  '천재적인 움직임이었다…',
+  '온 우주가 너의 아침을 응원한다!!',
+  '이 속도 실화냐?! 대박!!',
+];
+
+const CLEAR_TITLES = {
+  S: '🏆 전설의 아침이다!!',
+  A: '🎉 완벽에 가까운 아침!',
+  B: '👍 좋아, 내일은 A 간다',
+  C: '😮‍💨 아슬아슬… 그래도 해냈다',
+  F: '💀 너무 늦었다…',
+};
+
+const FAIL_LINES = [
+  '오늘의 퀘스트는 실패했다.\n내일의 너는 다르게 살아라.',
+  '스트릭이 불탔다…\n이 감정을 기억해라.',
+];
+
+// ===== 헤더 =====
+function renderHeader() {
+  $('#dday').textContent = ddayText();
+  const info = levelInfo();
+  $('#level-title').textContent = `Lv.${info.level} ${info.title} ${info.emoji}`;
+  $('#streak').textContent = `🔥 ${getState().streak}일`;
+  $('#xp-fill').style.width = `${Math.round(info.progress * 100)}%`;
+  $('#xp-text').textContent = info.nextXp
+    ? `${info.xp} / ${info.nextXp} XP`
+    : `${info.xp} XP (만렙!)`;
+}
+
+function renderClock() {
+  const t = now();
+  const hh = String(t.getHours()).padStart(2, '0');
+  const mm = String(t.getMinutes()).padStart(2, '0');
+  $('#clock').textContent = `${hh}:${mm}` + (isFakeClock() ? ' 🧪' : '');
+}
+
+// ===== 타이머 =====
+function renderTimer() {
+  const day = getToday();
+  const box = $('#timer-box');
+  if (!day.wakeAt) { box.classList.add('hidden'); return; }
+  box.classList.remove('hidden');
+  const end = day.arriveAt ? new Date(day.arriveAt) : now();
+  const sec = Math.max(0, Math.floor((end - new Date(day.wakeAt)) / 1000));
+  $('#timer').textContent = fmtDuration(sec);
+}
+
+function fmtDuration(sec) {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
+// ===== 퀘스트 리스트 =====
+function renderQuests() {
+  const day = getToday();
+  const ul = $('#quest-list');
+  ul.innerHTML = '';
+  day.quests.forEach((q, i) => {
+    const li = document.createElement('li');
+    const done = q.doneAt !== null;
+    const enabled = canComplete(q.id);
+    li.className = 'quest-item' + (done ? ' done' : '') + (!done && !enabled ? ' locked' : '');
+
+    const num = document.createElement('span');
+    num.className = 'quest-num';
+    num.textContent = `${i + 1}차`;
+
+    const title = document.createElement('span');
+    title.className = 'quest-title';
+    title.textContent = q.title;
+
+    const right = document.createElement(done ? 'span' : 'button');
+    if (done) {
+      right.className = 'quest-time';
+      const d = new Date(q.doneAt);
+      right.textContent = `✅ ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    } else {
+      right.className = 'quest-btn' + (q.id === 'q1' ? ' wake' : '');
+      right.textContent = q.id === 'q1' ? '⚔️ 기상!' : '완료';
+      right.disabled = !enabled;
+      right.addEventListener('click', () => onComplete(q.id));
+    }
+
+    li.append(num, title, right);
+    ul.appendChild(li);
+  });
+
+  // 커스텀 추가는 항상 노출 (완료는 3차 이후 가능)
+  $('#custom-add').classList.remove('hidden');
+}
+
+function onComplete(questId) {
+  const result = completeQuest(questId);
+  if (!result) return;
+  effects.unlockAudio();
+
+  if (result.cleared) {
+    showClearOverlay(result.cleared);
+  } else {
+    showPraiseOverlay(result.quest);
+  }
+  renderAll();
+}
+
+// ===== 오버레이 =====
+function overlayShow(html, { failMode = false } = {}) {
+  const ov = $('#overlay');
+  ov.classList.toggle('fail-mode', failMode);
+  $('#overlay-content').innerHTML = html;
+  ov.classList.remove('hidden');
+  $('#overlay-close')?.addEventListener('click', () => {
+    ov.classList.add('hidden');
+    effects.stopConfetti();
+  });
+}
+
+function showPraiseOverlay(quest) {
+  const line = PRAISE_LINES[Math.floor(Math.random() * PRAISE_LINES.length)];
+  overlayShow(`
+    <div class="big">🎉</div>
+    <h1>${quest.title} 클리어!</h1>
+    <p>${line}</p>
+    <button id="overlay-close">다음 퀘스트로!</button>
+  `);
+  effects.confetti('normal');
+  effects.playPraise().then(ok => { if (!ok) effects.playFanfare(); });
+}
+
+function showClearOverlay(c) {
+  const parts = [
+    `<div class="rank-letter ${c.rank}">${c.rank}</div>`,
+    `<h1>${CLEAR_TITLES[c.rank]}</h1>`,
+    `<p>밍기적 시간: <b>${fmtDuration(c.mingiSec)}</b></p>`,
+    c.newRecord ? `<div class="record">🏅 신기록 달성!!</div>` : '',
+    `<div class="xp-gain">+${c.xpGained} XP</div>`,
+    c.levelUp ? `<p>⬆️ 레벨 업!! <b>Lv.${c.levelUp.level} ${c.levelUp.title} ${c.levelUp.emoji}</b></p>` : '',
+    `<p>🔥 연속 ${c.streak}일째</p>`,
+    `<button id="overlay-close">오늘도 승리 🙌</button>`,
+  ];
+  overlayShow(parts.join(''), { failMode: c.rank === 'F' });
+  if (c.rank === 'F') {
+    effects.playFailSound();
+  } else {
+    effects.confetti(c.rank === 'S' || c.newRecord ? 'max' : 'normal');
+    effects.playPraise().then(ok => { if (!ok) effects.playFanfare(); });
+  }
+}
+
+function showFailOverlay() {
+  const line = FAIL_LINES[Math.floor(Math.random() * FAIL_LINES.length)];
+  overlayShow(`
+    <div class="rank-letter F">F</div>
+    <h1>QUEST FAILED</h1>
+    <p>${line}</p>
+    <button id="overlay-close">…내일 보자</button>
+  `, { failMode: true });
+  effects.playFailSound();
+  renderAll();
+}
+
+// ===== 경고 배너 =====
+function showWarning(stage, message) {
+  const banner = $('#warn-banner');
+  banner.className = `warn-banner stage${stage}`;
+  banner.textContent = message;
+  banner.classList.remove('hidden');
+
+  if (stage === 1) {
+    effects.playBeep();
+  } else if (stage === 2) {
+    effects.playBeep(3);
+    document.getElementById('app').classList.remove('shaking');
+    void document.getElementById('app').offsetWidth;
+    document.getElementById('app').classList.add('shaking');
+  } else {
+    effects.playSiren();
+    effects.flashRed();
+    document.getElementById('app').classList.remove('shaking');
+    void document.getElementById('app').offsetWidth;
+    document.getElementById('app').classList.add('shaking');
+  }
+}
+
+function hideWarning() {
+  $('#warn-banner').classList.add('hidden');
+}
+
+// ===== 탭/설정/입력 바인딩 =====
+function bindEvents() {
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      ['quest', 'stats', 'settings'].forEach(name => {
+        $(`#tab-${name}`).classList.toggle('hidden', name !== btn.dataset.tab);
+      });
+      if (btn.dataset.tab === 'stats') renderStats();
+    });
+  });
+
+  $('#custom-btn').addEventListener('click', () => {
+    const input = $('#custom-input');
+    if (addCustomQuest(input.value)) {
+      input.value = '';
+      renderQuests();
+    }
+  });
+
+  $('#sound-toggle').addEventListener('click', () => {
+    const s = getState();
+    s.settings.sound = !s.settings.sound;
+    save();
+    $('#sound-toggle').textContent = s.settings.sound ? '켜짐' : '꺼짐';
+  });
+  $('#sound-toggle').textContent = getState().settings.sound ? '켜짐' : '꺼짐';
+
+  $('#reset-btn').addEventListener('click', () => {
+    if (confirm('정말 모든 기록을 삭제할까요? 되돌릴 수 없어요.')) {
+      resetAll();
+      location.reload();
+    }
+  });
+}
+
+function renderAll() {
+  renderHeader();
+  renderClock();
+  renderTimer();
+  renderQuests();
+}
+
+
+// ===== app.js =====
+// 엔트리 — 초기화와 1초 틱
+
+
+
+
+
+let currentDay = todayKey();
+
+function tick() {
+  // 자정(또는 날짜 오버라이드) 넘어가면 새로운 하루
+  if (todayKey() !== currentDay) {
+    currentDay = todayKey();
+    hideWarning();
+    renderAll();
+    return;
+  }
+
+  renderClock();
+  renderTimer();
+
+  const { active } = checkTimeline({
+    onWarn: (stage, message) => {
+      showWarning(stage, message);
+      renderQuests();
+    },
+    onFail: () => showFailOverlay(),
+  });
+
+  const day = getToday();
+  if (!active && (day.arriveAt || day.failed)) hideWarning();
+}
+
+function init() {
+  getToday();       // 오늘 데이터 생성 (자정 리셋 포함)
+  bindEvents();
+  renderAll();
+  setInterval(tick, 1000);
+
+  // PWA service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+}
+
+init();
+
+</script>
