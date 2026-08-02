@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <title>아침 퀘스트</title>
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="아침 퀘스트">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="app">
+
+    <!-- 상단 상태 -->
+    <header id="header">
+      <div class="header-row">
+        <div id="dday" class="dday">D-??</div>
+        <div id="clock" class="clock">--:--</div>
+      </div>
+      <div class="level-box">
+        <div class="level-row">
+          <span id="level-title" class="level-title">Lv.1 이불 애벌레 🐛</span>
+          <span id="streak" class="streak">🔥 0일</span>
+        </div>
+        <div class="xp-bar"><div id="xp-fill" class="xp-fill"></div></div>
+        <div id="xp-text" class="xp-text">0 XP</div>
+      </div>
+    </header>
+
+    <!-- 경고 배너 -->
+    <div id="warn-banner" class="warn-banner hidden"></div>
+
+    <!-- 퀘스트 탭 -->
+    <main id="tab-quest" class="tab">
+      <div id="timer-box" class="timer-box hidden">
+        <span class="timer-label">밍기적 타이머</span>
+        <span id="timer" class="timer">00:00</span>
+      </div>
+      <ul id="quest-list" class="quest-list"></ul>
+      <div id="custom-add" class="custom-add hidden">
+        <input id="custom-input" type="text" placeholder="오늘의 추가 퀘스트 (예: 인강 1강)" maxlength="30">
+        <button id="custom-btn" class="btn-small">추가</button>
+      </div>
+    </main>
+
+    <!-- 기록 탭 -->
+    <main id="tab-stats" class="tab hidden">
+      <h2>📊 밍기적 시간</h2>
+      <div id="chart" class="chart"></div>
+      <h2>🗓️ 랭크 캘린더</h2>
+      <div id="calendar" class="calendar"></div>
+      <h2>🏅 배지</h2>
+      <div id="badges" class="badges"></div>
+    </main>
+
+    <!-- 설정 탭 -->
+    <main id="tab-settings" class="tab hidden">
+      <h2>⚙️ 설정</h2>
+      <div class="setting-row">
+        <span>소리</span>
+        <button id="sound-toggle" class="btn-small">켜짐</button>
+      </div>
+      <div class="setting-info">
+        <h3>⏰ 시간 기준</h3>
+        <p>10:00 기상 알람 (아이폰 알람 사용)<br>
+           10:20 1차 경고<br>
+           10:25 2차 경고 (욕설 시작)<br>
+           10:30 분노 모드 (5분마다)<br>
+           11:00 퀘스트 실패 판정</p>
+        <h3>📱 홈 화면에 추가</h3>
+        <p>Safari 공유 버튼 → "홈 화면에 추가"를 누르면 앱처럼 쓸 수 있어요.</p>
+        <h3>🎤 엄마 목소리 넣기</h3>
+        <p>sounds/praise/ 폴더에 praise1.mp3 ~ praise9.mp3 이름으로 넣으면 자동 적용돼요.</p>
+        <h3>⚠️ 사용 전제</h3>
+        <p>경고는 앱이 켜져 있는 동안만 울려요. 눈 뜨면 앱부터 열고, 루틴 끝날 때까지 화면을 켜두세요.</p>
+      </div>
+      <button id="reset-btn" class="btn-danger">데이터 전체 초기화</button>
+    </main>
+
+    <!-- 하단 탭 바 -->
+    <nav id="tabbar">
+      <button data-tab="quest" class="tab-btn active">⚔️ 퀘스트</button>
+      <button data-tab="stats" class="tab-btn">📊 기록</button>
+      <button data-tab="settings" class="tab-btn">⚙️ 설정</button>
+    </nav>
+
+    <!-- 클리어/칭찬 오버레이 -->
+    <div id="overlay" class="overlay hidden">
+      <canvas id="confetti-canvas"></canvas>
+      <div id="overlay-content" class="overlay-content"></div>
+    </div>
+
+  </div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
