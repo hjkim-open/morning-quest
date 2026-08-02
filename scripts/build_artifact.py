@@ -8,7 +8,7 @@ JS_ORDER = ['clock.js', 'state.js', 'timeline.js', 'effects.js', 'stats.js', 'ui
 
 EFFECTS_NAMESPACE = (
     "const effects = { unlockAudio, playBeep, playSiren, playFanfare, "
-    "playFailSound, playPraise, confetti, stopConfetti, flashRed };\n"
+    "playFailSound, playPraise, playWarnVoice, confetti, stopConfetti, flashRed };\n"
 )
 
 

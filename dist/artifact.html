@@ -666,6 +666,14 @@ function unlockAudio() {
     if (AC) ctx = new AC();
   }
   if (ctx && ctx.state === 'suspended') ctx.resume();
+  // iOS: 사용자 터치 시점에 오디오 엘리먼트를 무음 재생으로 잠금 해제
+  // → 이후 경고 시점(터치 없음)에도 목소리 재생 가능
+  const audio = getVoiceAudio();
+  if (!audio.src) {
+    audio.muted = true;
+    audio.src = 'data:audio/mpeg;base64,//uQxAAAAAAAAAAAAAAAAAAAAAAASW5mbwAAAA8AAAACAAACcQCA';
+    audio.play().catch(() => {});
+  }
 }
 
 function soundOn() {
@@ -720,41 +728,63 @@ function playFailSound() {
 }
 
 // ===== 엄마 목소리 =====
-let praiseFiles = null; // null = 아직 확인 안 함
+// 공유 오디오 엘리먼트: 첫 사용자 터치 때 잠금 해제해서
+// 이후(경고 등) 터치 없이도 재생 가능하게 유지한다.
+let voiceAudio = null;
+const soundCache = {}; // dir → 파일 목록
 
-async function probePraiseFiles() {
-  if (praiseFiles !== null) return praiseFiles;
+function getVoiceAudio() {
+  if (!voiceAudio) voiceAudio = new Audio();
+  return voiceAudio;
+}
+
+async function probeSoundFiles(dir, prefix, dataUris) {
+  if (soundCache[dir]) return soundCache[dir];
   // 단일 파일 배포(아티팩트)에서는 데이터 URI로 심은 목소리를 사용
-  if (Array.isArray(window.PRAISE_DATA_URIS) && window.PRAISE_DATA_URIS.length > 0) {
-    praiseFiles = window.PRAISE_DATA_URIS.slice();
-    return praiseFiles;
+  if (Array.isArray(dataUris) && dataUris.length > 0) {
+    soundCache[dir] = dataUris.slice();
+    return soundCache[dir];
   }
   const found = [];
-  await Promise.all(
-    Array.from({ length: 9 }, (_, i) => `sounds/praise/praise${i + 1}.mp3`).map(async url => {
-      try {
-        const res = await fetch(url, { method: 'HEAD' });
-        if (res.ok) found.push(url);
-      } catch { /* 없음 */ }
-    })
-  );
-  praiseFiles = found;
+  const candidates = [];
+  for (let i = 1; i <= 9; i++) {
+    candidates.push(`sounds/${dir}/${prefix}${i}.mp3`, `sounds/${dir}/${prefix}${i}.m4a`);
+  }
+  await Promise.all(candidates.map(async url => {
+    try {
+      const res = await fetch(url, { method: 'HEAD' });
+      if (res.ok) found.push(url);
+    } catch { /* 없음 */ }
+  }));
+  soundCache[dir] = found;
   return found;
 }
 
-// 재생 성공하면 true, 파일 없으면 false (호출부에서 팡파레로 대체)
-async function playPraise() {
+async function playVoice(dir, prefix, dataUris) {
   if (!getState().settings.sound) return true; // 무음 설정이면 대체음도 내지 않음
-  const files = await probePraiseFiles();
+  const files = await probeSoundFiles(dir, prefix, dataUris);
   if (files.length === 0) return false;
   const url = files[Math.floor(Math.random() * files.length)];
   try {
-    const audio = new Audio(url);
+    const audio = getVoiceAudio();
+    audio.pause();
+    audio.src = url;
+    audio.muted = false;
     await audio.play();
     return true;
   } catch {
     return false;
   }
+}
+
+// 재생 성공하면 true, 파일 없으면 false (호출부에서 팡파레로 대체)
+function playPraise() {
+  return playVoice('praise', 'praise', window.PRAISE_DATA_URIS);
+}
+
+// 경고용 엄마 목소리. 없으면 false (호출부에서 사이렌으로 대체)
+function playWarnVoice() {
+  return playVoice('warn', 'warn', window.WARN_DATA_URIS);
 }
 
 // ===== 콘페티 =====
@@ -825,7 +855,7 @@ function flashRed() {
 }
 
 
-const effects = { unlockAudio, playBeep, playSiren, playFanfare, playFailSound, playPraise, confetti, stopConfetti, flashRed };
+const effects = { unlockAudio, playBeep, playSiren, playFanfare, playFailSound, playPraise, playWarnVoice, confetti, stopConfetti, flashRed };
 
 
 // ===== stats.js =====
@@ -1138,12 +1168,14 @@ function showWarning(stage, message) {
   if (stage === 1) {
     effects.playBeep();
   } else if (stage === 2) {
-    effects.playBeep(3);
+    // 엄마 목소리 경고, 없으면 삑삑
+    effects.playWarnVoice().then(ok => { if (!ok) effects.playBeep(3); });
     document.getElementById('app').classList.remove('shaking');
     void document.getElementById('app').offsetWidth;
     document.getElementById('app').classList.add('shaking');
   } else {
-    effects.playSiren();
+    // 엄마 목소리 경고, 없으면 사이렌
+    effects.playWarnVoice().then(ok => { if (!ok) effects.playSiren(); });
     effects.flashRed();
     document.getElementById('app').classList.remove('shaking');
     void document.getElementById('app').offsetWidth;

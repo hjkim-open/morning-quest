@@ -185,12 +185,14 @@ export function showWarning(stage, message) {
   if (stage === 1) {
     effects.playBeep();
   } else if (stage === 2) {
-    effects.playBeep(3);
+    // 엄마 목소리 경고, 없으면 삑삑
+    effects.playWarnVoice().then(ok => { if (!ok) effects.playBeep(3); });
     document.getElementById('app').classList.remove('shaking');
     void document.getElementById('app').offsetWidth;
     document.getElementById('app').classList.add('shaking');
   } else {
-    effects.playSiren();
+    // 엄마 목소리 경고, 없으면 사이렌
+    effects.playWarnVoice().then(ok => { if (!ok) effects.playSiren(); });
     effects.flashRed();
     document.getElementById('app').classList.remove('shaking');
     void document.getElementById('app').offsetWidth;
