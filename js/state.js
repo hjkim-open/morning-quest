@@ -4,6 +4,10 @@ import { now, todayKey } from './clock.js';
 const KEY = 'morningQuest.v1';
 export const EXAM_DATE = '2026-08-22';
 
+// 이 숫자를 올리면 모든 기기에서 다음 접속 때 데이터가 한 번 초기화된다
+// (2: 2026-08-03 리얼 시작 전 테스트 데이터 일괄 삭제)
+const DATA_EPOCH = 2;
+
 // 시간 기준 (분 단위, 자정 기준)
 export const TIMES = {
   warn1: 10 * 60 + 20,  // 10:20
@@ -37,6 +41,7 @@ let state = null;
 
 function defaultState() {
   return {
+    epoch: DATA_EPOCH,
     xp: 0,
     streak: 0,
     lastSuccessDate: null,
@@ -52,6 +57,11 @@ export function getState() {
       state = JSON.parse(localStorage.getItem(KEY)) || defaultState();
     } catch {
       state = defaultState();
+    }
+    // 예전 epoch 데이터는 일괄 초기화 (테스트 데이터 청소)
+    if (state.epoch !== DATA_EPOCH) {
+      state = defaultState();
+      save();
     }
   }
   return state;
