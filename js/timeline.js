@@ -1,5 +1,5 @@
 // 경고 타임라인 — 1초마다 호출되어 경고/실패를 판정한다
-import { minutesOfDay } from './clock.js';
+import { minutesOfDay, todayKey } from './clock.js';
 import { getToday, markFailed, save, TIMES } from './state.js';
 
 // 2차 경고 (10:25~) — 욕설 시작
@@ -31,9 +31,14 @@ function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-// 매초 호출. callbacks: { onWarn(stage, message), onFail() }
+let checkedDay = null; // 이 세션에서 이미 판정을 시작한 날짜
+
+// 매초 호출. callbacks: { onWarn(stage, message), onFail(quiet) }
 export function checkTimeline({ onWarn, onFail }) {
   const day = getToday();
+
+  const isFirstCheckOfDay = checkedDay !== todayKey();
+  if (isFirstCheckOfDay) checkedDay = todayKey();
 
   // 3차 완료했거나 이미 실패면 경고 없음
   if (day.arriveAt || day.failed) return { active: false };
@@ -42,7 +47,10 @@ export function checkTimeline({ onWarn, onFail }) {
 
   // 11:00 실패 판정
   if (min >= TIMES.fail) {
-    if (markFailed()) onFail();
+    // 오늘 처음 열었는데 이미 11시가 지났고 아무것도 안 했다면
+    // 조용히 실패 기록만 남긴다 (열자마자 실패 연출로 놀라게 하지 않기)
+    const nothingDone = !day.quests.some(q => q.doneAt);
+    if (markFailed()) onFail(isFirstCheckOfDay && nothingDone);
     return { active: false };
   }
 

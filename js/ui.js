@@ -163,7 +163,8 @@ function showClearOverlay(c) {
   }
 }
 
-export function showFailOverlay() {
+export function showFailOverlay(quiet = false) {
+  if (quiet) { renderAll(); return; } // 늦은 첫 접속: 기록만 남기고 연출 생략
   const line = FAIL_LINES[Math.floor(Math.random() * FAIL_LINES.length)];
   overlayShow(`
     <div class="rank-letter F">F</div>

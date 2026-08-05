@@ -1,5 +1,5 @@
 // 오프라인 캐시 service worker
-const CACHE = 'morning-quest-v2';
+const CACHE = 'morning-quest-v3';
 const ASSETS = [
   '.',
   'index.html',

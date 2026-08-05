@@ -5,8 +5,8 @@ const KEY = 'morningQuest.v1';
 export const EXAM_DATE = '2026-08-22';
 
 // 이 숫자를 올리면 모든 기기에서 다음 접속 때 데이터가 한 번 초기화된다
-// (2: 2026-08-03 리얼 시작 전 테스트 데이터 일괄 삭제)
-const DATA_EPOCH = 2;
+// (3: 2026-08-05 저장 문제 수정 후 잘못 기록된 실패 포함 일괄 삭제, 8/6부터 리얼 재시작)
+const DATA_EPOCH = 3;
 
 // 시간 기준 (분 단위, 자정 기준)
 export const TIMES = {
